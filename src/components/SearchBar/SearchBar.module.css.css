@@ -1,0 +1,21 @@
+.header {
+    position: fixed;
+    top: 0;
+
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0px 10px 0px;
+    background-color: white;
+    z-index: 100;
+}
+
+.cont {
+    margin-left: 50px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.btn {
+    margin-left: 20px;
+}

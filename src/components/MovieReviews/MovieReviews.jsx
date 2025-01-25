@@ -1,27 +1,32 @@
-import css from "./MovieReviews.module.css";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom"
+import { fetchMoviesRevById } from "../../services/api";
 
-const MovieReviews = ({ reviews }) => {
-  console.log(reviews);
+const MovieReviews = () => {
+    const { movieId } = useParams();
+    const [rev, setRev] = useState([]);
 
-  return (
-    <ul className={css.list}>
-      {reviews.data.total_results > 0 &&
-        reviews.data.results.map((review) => {
-          return (
-            <li key={review.id} className={css.item}>
-              <h1 className={css.author}>{review.author}</h1>
-              <p className={css.review}>{review.content}</p>
-            </li>
-          );
-        })}
+    useEffect(() => {
+        const getRevData = async () => {
+            const rev = await fetchMoviesRevById(movieId);
+            setRev(rev);
+        }
+        getRevData();
+    }, [movieId]);
 
-      {reviews.data.total_results < 1 && (
-        <li>
-          <p>We don&apos;t have any reviews for this movie.</p>
-        </li>
-      )}
-    </ul>
-  );
-};
+    return (
+        <>
+            <h1>MovieReviews</h1>
+            <ul>
+                {rev.length ? rev.map(item => (
+                    <li key={item.id}>
+                        <h3>Author: {item.author}</h3>
+                        <p>{item.content}</p>
+                    </li>))
+                    : <p>We dont have any reviews for this movie.</p>}
+            </ul>
 
-export default MovieReviews;
+        </>)
+}
+
+export default MovieReviews

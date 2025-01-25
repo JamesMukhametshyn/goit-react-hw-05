@@ -1,65 +1,46 @@
-import { useEffect, useState } from "react";
-import SearchBox from "../../components/SearchBox/SearchBox";
-import { fetchMoviesByQuery } from "../../components/Services/Api";
+import { useEffect, useState } from "react"
+import SearchBar from "../../components/SearchBar/SearchBar"
 import MovieList from "../../components/MovieList/MovieList";
-import ErrorMessage from "../../components/ErrorMessage/ErrorMessage.jsx";
-import Loader from "../../components/Loader/Loader.jsx";
-import toast, { Toaster } from "react-hot-toast";
+import { fetchMoviesData } from "../../services/api";
 import { useSearchParams } from "react-router-dom";
 
 const MoviesPage = () => {
-  const [movies, setMovies] = useState(null);
 
-  const notify = () => toast.error("Please fill in the Search field.");
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const query = searchParams.get("query");
+    const [movies, setMovie] = useState([]);
+    const [searchParams, setSearchParams] = useSearchParams();
 
-  const onSetSearchQuery = (searchTerm) => {
-    if (searchTerm.length === 0) {
-      notify();
-    } else {
-      setSearchParams({ query: searchTerm });
-    }
-  };
 
-  useEffect(() => {
-    if (query === null) return;
+    const query = searchParams.get('query');
 
-    async function fetchImagesByQuery() {
-      try {
-        setLoading(true);
-        const response = await fetchMoviesByQuery(query);
+    useEffect(() => {
+        if (!query) return;
 
-        console.log(response.data.total_results);
+        const getMoviesData = async () => {
 
-        if (response.data.total_results === 0) {
-          toast.error("Sorry, we couldn't find anything.");
-          setMovies(null);
-          setLoading(false);
-        } else {
-          setMovies(response.data.results);
-        }
-      } catch (error) {
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
+            try {
+                const data = await fetchMoviesData(query);
+                setMovie(data);
+
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getMoviesData();
+    }, [query])
+
+    const handleChangeQuery = (newQuery) => {
+        searchParams.set('query', newQuery);
+        setSearchParams(searchParams);
     }
 
-    fetchImagesByQuery();
-  }, [query]);
 
-  return (
-    <div>
-      <SearchBox onSubmit={onSetSearchQuery} />
-      <Toaster />
-      {error && <ErrorMessage />}
-      {loading === true && <Loader />}
-      {movies && <MovieList movies={movies} />}
-    </div>
-  );
-};
 
-export default MoviesPage;
+    return (
+        <>
+            <SearchBar handleChangeQuery={handleChangeQuery} />
+            <MovieList movies={movies} />
+        </>
+    )
+}
+
+export default MoviesPage

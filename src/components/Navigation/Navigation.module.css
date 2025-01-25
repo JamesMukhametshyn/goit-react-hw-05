@@ -1,27 +1,23 @@
-.nav {
-    display: flex;
-
-    gap: 20px;
-}
-
-.navLink {
-    display: flex;
-
-    color: black;
+.link {
     text-decoration: none;
-}
-
-.navLink:hover,
-.navLink:focus {
-    transform: scale(1.1);
-    color: black;
-    text-decoration: underline;
+    color: #fff;
+    font-size: 20px;
 }
 
 .active {
-    color: orangered;
+    color: rgb(45, 0, 87);
 }
 
-.active:hover,
-.active:focus {
-    color: orangered;}
+.header {
+    height: 50px;
+    background-color: rgb(176, 134, 215);
+    display: flex;
+    align-items: center;
+
+}
+
+.nav {
+    display: flex;
+    gap: 20px;
+    padding-left: 50px;
+}

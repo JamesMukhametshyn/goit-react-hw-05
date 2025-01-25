@@ -1,25 +1,32 @@
-import css from "./MovieCast.module.css";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom"
+import { fetchMoviesDetailsById } from "../../services/api";
+import s from './MovieCast.module.css'
 
-const MovieCast = ({ cast }) => {
-  return (
-    <div>
-      <ul className={css.list}>
-        {cast &&
-          cast.map((actor) => {
-            return (
-              <li key={actor.id} className={css.listItem}>
-                <img
-                  src={`https://image.tmdb.org/t/p/w500/${actor.profile_path}`}
-                  className={css.img}
-                />
-                <h1 className={css.actorName}>{actor.name}</h1>
-                <p className={css.characterName}>{actor.character}</p>
-              </li>
-            );
-          })}
-      </ul>
-    </div>
-  );
-};
+const MovieCast = () => {
+    const { movieId } = useParams();
+    const [cast, setCast] = useState([]);
 
-export default MovieCast;
+    useEffect(() => {
+        const getCastData = async () => {
+            const cast = await fetchMoviesDetailsById(movieId);
+            setCast(cast);
+        };
+        getCastData();
+    }, [movieId]);
+
+    return (
+        <div className={s.cont}>
+            <ul>
+                {cast.length ? cast.map(item => (
+                    < li key={item.id} >{item.profile_path && <img src={`https://image.tmdb.org/t/p/w200/${item.profile_path}`} alt={item.name} />}
+                        <p> {item.name}</p>
+                        <p>Character: {item.character}</p>
+                    </li >
+                )) : <p>We dont have any informations about actors for this movie.</p>}
+            </ul>
+        </div>
+    )
+}
+
+export default MovieCast

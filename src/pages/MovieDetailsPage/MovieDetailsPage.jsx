@@ -1,138 +1,67 @@
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
-import {
-  fetchMovieCast,
-  fetchMovieDetails,
-  fetchMovieReviews,
-} from "../../components/Services/Api";
-import { Route, Routes } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useParams } from "react-router-dom"
+import { fetchMoviesById } from "../../services/api";
+import s from './MovieDetailsPage.module.css'
+import clsx from "clsx";
 
-import ErrorMessage from "../../components/ErrorMessage/ErrorMessage.jsx";
-import Loader from "../../components/Loader/Loader.jsx";
 
-const MovieCast = lazy(() => import("../../components/MovieCast/MovieCast"));
-
-const MovieReviews = lazy(() =>
-  import("../../components/MovieReviews/MovieReviews")
-);
-
-import css from "./MovieDetailsPage.module.css";
+const buildLinkClass = ({ isActive }) => {
+    return clsx(s.link, isActive && s.active);
+}
 
 const MovieDetailsPage = () => {
-  const { movieId } = useParams();
 
-  const [movie, setMovie] = useState(null);
+    const { movieId } = useParams();
+    const [movie, setMoviesDetail] = useState(null);
+    const location = useLocation();
+    const goBackRef = useRef(location.state ?? '/movies');
 
-  const [movieGenres, setMovieGenres] = useState("");
-  const [movieRating, setMovieRating] = useState(0);
-  const [movieReviews, setMovieReviews] = useState(null);
-  const [movieCast, setMovieCast] = useState(null);
-  const [error, setError] = useState(false);
-  const [loadingMovie, setLoadingMovie] = useState(false);
-  const location = useLocation();
-  const backLinkRef = useRef(location.state ?? "/");
 
-  useEffect(() => {
-    async function requestMovieDetails() {
-      try {
-        setLoadingMovie(true);
-        const response = await fetchMovieDetails(movieId);
-        setMovie(response);
-        if (response) {
-          const genres = response.data.genres
-            .map((genre) => genre.name)
-            .join(", ");
-          setMovieGenres(genres);
-          const rating = response.data.vote_average * 10;
+    useEffect(() => {
+        const getMoviesData = async () => {
+            const movies = await fetchMoviesById(movieId);
+            setMoviesDetail(movies);
+        };
 
-          setMovieRating(rating.toFixed(0));
-        }
-      } catch (error) {
-        setError(true);
-      } finally {
-        setLoadingMovie(false);
-      }
+
+        getMoviesData();
+    }, [movieId])
+
+    if (!movie) {
+        return <h2>Loading...</h2>;
     }
+    console.log(movie);
 
-    async function requestMovieReviews() {
-      try {
-        const response = await fetchMovieReviews(movieId);
-        setMovieReviews(response);
-      } catch (error) {
-        setError(true);
-      }
-    }
 
-    async function requestMovieCast() {
-      try {
-        const response = await fetchMovieCast(movieId);
-        setMovieCast(response.data.cast);
-      } catch (error) {
-        setError(true);
-      }
-    }
+    return (
+        <div className={s.contanier}>
 
-    requestMovieCast();
-    requestMovieReviews();
-    requestMovieDetails();
-  }, [movieId]);
-
-  return (
-    <div className={css.container}>
-      <Link to={backLinkRef.current} className={css.backLink}>
-        Go back
-      </Link>
-      {error && <ErrorMessage />}
-      {loadingMovie === true && <Loader />}
-
-      {movie && (
-        <div>
-          <div className={css.mainInfo}>
-            <img
-              src={`https://image.tmdb.org/t/p/w500/${movie.data.poster_path}`}
-              className={css.img}
-            />
-            <div>
-              <h1 className={css.movieName}>{movie.data.title}</h1>
-              <p>User scrore: {movieRating}%</p>
-              <h2 className={css.overviewHeading}>Overview</h2>
-              <p className={css.overviewText}>{movie.data.overview}</p>
-              <h2 className={css.genresHeading}>Genres</h2>
-              <p className={css.genresText}>{movieGenres}</p>
+            <Link to={goBackRef.current}>Go back</Link>
+            <div className={s.wrap}>
+                <img src={`https://image.tmdb.org/t/p/w200/${movie.poster_path}`} />
+                <div className={s.text}>
+                    <h1>{movie.original_title}</h1>
+                    <p>User Score: {movie.vote_count}</p>
+                    <h2>Overview</h2>
+                    <p>{movie.overview}</p>
+                    <h3>Genres</h3>
+                    <p>{movie.genres.map(genre => genre.name).join(', ')}</p>
+                </div>
             </div>
-          </div>
-          <div className={css.additionalInfo}>
-            <h2 className={css.additionalInfoHeading}>
-              Additional information:
-            </h2>
-            <ul className={css.additionalInfoList}>
-              <li>
-                <Link to="cast" className={css.link}>
-                  Cast
-                </Link>
-              </li>
 
-              <li>
-                <Link to="reviews" className={css.link}>
-                  Reviews
-                </Link>
-              </li>
-            </ul>
-            <Suspense fallback={<Loader />}>
-              <Routes>
-                <Route path="cast" element={<MovieCast cast={movieCast} />} />
-
-                <Route
-                  path="reviews"
-                  element={<MovieReviews reviews={movieReviews} />}
-                />
-              </Routes>
-            </Suspense>
-          </div>
+            <nav >
+                <ul className={s.ul}>
+                    <li>
+                        <NavLink className={buildLinkClass} to='cast'>Cast</NavLink>
+                    </li>
+                    <li>
+                        <NavLink className={buildLinkClass} to='reviews'>Reviews</NavLink>
+                    </li>
+                </ul>
+            </nav>
+            <Outlet />
         </div>
-      )}
-    </div>
-  );
-};
+    )
+}
 
-export default MovieDetailsPage;
+export default MovieDetailsPage
